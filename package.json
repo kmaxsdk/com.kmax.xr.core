@@ -1,6 +1,6 @@
-﻿{
+{
   "name": "com.kmax.xr.core",
-  "version": "2.3.5",
+  "version": "2.3.11",
   "displayName": "Kmax XR Core",
   "description": "Kmax XR SDK for Unity\nSupport Stereo Display and stylus input on Kmax M1, K1.\n\u79d1\u9a8f XR SDK Unity \u7248\n\u63d0\u4f9b\u7acb\u4f53\u663e\u793a\u548c\u7a7a\u95f4\u4ea4\u4e92\u529f\u80fd\uff0c\u652f\u6301\u7684\u8bbe\u5907\u5305\u62ecKmax M1\u3001K1\u3002",
   "unity": "2019.4",
@@ -11,16 +11,14 @@
   },
   "license": "GPL-3.0-only",
   "keywords": [
+    "Unity",
     "XR",
     "Kmax",
-    "Stereo",
-    "Stylus",
-    "Kmax M1",
-    "Kmax K1"
+    "Stereo"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/kmaxsdk/com.kmax.xr.core.git"
+    "url": "git+https://github.com/kmaxsdk/com.kmax.xr.core.git"
   },
   "documentationUrl": "https://pad.kmaxxr.com/doc/",
   "samples": [

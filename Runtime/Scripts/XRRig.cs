@@ -7,13 +7,16 @@ using UnityEditor;
 
 namespace KmaxXR
 {
+    /// <summary>
+    /// XR套件，控制显示交互方式。
+    /// </summary>
     [DefaultExecutionOrder(ScriptPriority)]
     public class XRRig : MonoBehaviour
     {
         /// <summary>
         /// 脚本优先级，确保在其他脚本之前实例化全局单例。
         /// </summary>
-        public const int ScriptPriority = -100;
+        public const int ScriptPriority = -500;
         [SerializeField, Header("View")]
         protected VirtualScreen screen;
         [SerializeField, Range(0.001f, 1000f)]
@@ -43,9 +46,15 @@ namespace KmaxXR
             set
             {
                 mono = value;
-                rig?.SwitchViewMode(!value);
+                manuallyControled = true;
+                KmaxNative.Log("Manually set the display mode to " + (value ? "mono" : "sbs"));
+                rig?.SetWorkMode(!value);
             }
         }
+        /// <summary>
+        /// 是否手动控制显示模式
+        /// </summary>
+        static bool manuallyControled = false;
 
         /// <summary>
         /// 虚拟屏幕
@@ -117,9 +126,16 @@ namespace KmaxXR
 
         protected virtual void Start()
         {
-            // 初始化显示模式
-            mono = KmaxNative.RenderModeInUse == KmaxNative.RenderMode.Mono;
-            SwitchViewMode(!mono);
+            if (manuallyControled)
+            {
+                // 不修改
+            }
+            else
+            {
+                // 初始化显示模式
+                mono = KmaxNative.RenderModeInUse == KmaxNative.RenderMode.Mono;
+            }
+            SetWorkMode(!mono);
         }
         #endregion
 
@@ -151,12 +167,12 @@ namespace KmaxXR
             stereoCamera.transform.localPosition =
                 -StereoCamera.DefaultDistance * Vector3.forward * viewScale;
         }
-        
+
         /// <summary>
-        /// 切换视口显示模式
+        /// 设置工作模式
         /// </summary>
         /// <param name="sbs">是否左右显示</param>
-        internal void SwitchViewMode(bool sbs)
+        internal void SetWorkMode(bool sbs)
         {
             if (!Application.isPlaying) return;
             // 调整输入

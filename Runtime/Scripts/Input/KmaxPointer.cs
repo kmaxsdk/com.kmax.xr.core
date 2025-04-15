@@ -12,10 +12,21 @@ namespace KmaxXR
     public abstract class KmaxPointer : MonoBehaviour
     {
         #region 静态成员
-        private readonly static List<KmaxPointer> pointers = new();
+        private readonly static List<KmaxPointer> pointers = new List<KmaxPointer>();
 
+        /// <summary>
+        /// 指针迭代器
+        /// </summary>
         public static IEnumerable<KmaxPointer> Pointers => pointers;
+        /// <summary>
+        /// 通过Id获取指针
+        /// </summary>
+        /// <param name="id">指针Id</param>
+        /// <returns>指针</returns>
         public static KmaxPointer PointerById(int id) => pointers.Find(p => p.Contains(id));
+        /// <summary>
+        /// 场景中是否存在指针
+        /// </summary>
         public static bool Enable => pointers.Count > 0;
 
         /// <summary>
@@ -69,9 +80,21 @@ namespace KmaxXR
 
         [SerializeField]
         protected Camera eventCamera;
+        /// <summary>
+        /// 事件相机
+        /// </summary>
         public Camera EventCamera => eventCamera;
+        /// <summary>
+        /// 基础射线检测器
+        /// </summary>
         protected BaseRaycaster raycaster;
+        /// <summary>
+        /// 指针唯一Id
+        /// </summary>
         public abstract int Id { get; }
+        /// <summary>
+        /// 指针所在屏幕位置
+        /// </summary>
         public abstract Vector2 ScreenPosition { get; }
         /// <summary>
         /// 射线发射端位置及旋转
@@ -85,9 +108,15 @@ namespace KmaxXR
         /// 是否可见
         /// </summary>
         public abstract bool Visible { get; }
+        /// <summary>
+        /// 是否命中3d物体
+        /// </summary>
         public virtual bool Hit3D { get; }
+        /// <summary>
+        /// 当前抓取的物体
+        /// </summary>
         public virtual GameObject GrabObject { get; set; }
-        
+
         /// <summary>
         /// 根据按钮类别获取按钮状态，子类通过改写此方法实现按钮映射。
         /// </summary>

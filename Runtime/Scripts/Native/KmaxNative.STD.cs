@@ -36,7 +36,7 @@ namespace KmaxXR
             renderMode = GetFirstFlag<RenderMode>(vrMode);
             if (renderMode == RenderMode.Mono) // 不支持立体显示
             {
-                Debug.Log($"Use RenderMode {renderMode}");
+                Log($"Use RenderMode {renderMode}");
                 return initCode = 1;
             }
 
@@ -53,7 +53,7 @@ namespace KmaxXR
 
             // 获取当前的渲染API类型
             GraphicsDeviceType currentGraphicsDeviceType = SystemInfo.graphicsDeviceType;
-            Debug.Log("Current Graphics Device Type: " + currentGraphicsDeviceType);
+            Log("Current Graphics Device Type: " + currentGraphicsDeviceType);
             if (currentGraphicsDeviceType != GraphicsDeviceType.Direct3D11)
             {
                 renderMode = RenderMode.SideBySide;
@@ -71,7 +71,7 @@ namespace KmaxXR
             {
                 renderMode = RenderMode.SideBySide;
             }
-            Debug.Log($"Use RenderMode {renderMode}. Return code {initCode}.");
+            Log($"Use RenderMode {renderMode}. Return code {initCode}.");
             UnityEngine.Object.Destroy(Tex);
             return initCode;
         }

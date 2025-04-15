@@ -20,7 +20,7 @@ namespace KmaxXR
         [SerializeField]
         protected Transform stylus;
         protected IPointerVisualize pointerVisualize;
-        
+
         [SerializeField]
         float rayLength = 0.5f;
 
@@ -28,7 +28,7 @@ namespace KmaxXR
         /// 射线默认长度，即未命中任何物体时的长度。
         /// </summary>
         public float RayLength { get => rayLength; set => rayLength = value; }
-        
+
         [SerializeField, Tooltip("平滑的末端端点")]
         protected bool smoothEndPoint = false;
         public bool SmoothEndPoint { get => smoothEndPoint; set => smoothEndPoint = value; }
@@ -38,7 +38,7 @@ namespace KmaxXR
         public LayerMask layer;
         [Tooltip("主键，直接参与交互。")]
         public PointerEventData.InputButton PrimaryKey = PointerEventData.InputButton.Middle;
-        
+
         public const int StylusButtnLeft = UniqueId;
         public const int StylusButtnRigth = UniqueId + 1;
         public const int StylusButtnCenter = UniqueId + 2;
@@ -57,7 +57,7 @@ namespace KmaxXR
         [System.Serializable]
         public class RaycastEvent : UnityEvent<GameObject> { }
         private GameObject _enteredObject, _exitedObject;
-        
+
         /// <summary>
         /// 当射线移入某个物体时触发。
         /// Event dispatched when the pointer enters an object.
@@ -78,14 +78,14 @@ namespace KmaxXR
         /// Event dispatched when a pointer button becomes pressed.
         /// </summary>
         [Tooltip("Event dispatched when a pointer button becomes pressed.")]
-        public UnityEvent<int> OnButtonPressed = new ();
+        public UnityEvent<int> OnButtonPressed = new UnityEvent<int>();
 
         /// <summary>
         /// 当按钮抬起时触发，按钮对应 StylusButtnLeft, StylusButtnRigth, StylusButtnCenter 其中一个。
         /// Event dispatched when a pointer button becomes released.
         /// </summary>
         [Tooltip("Event dispatched when a pointer button becomes released.")]
-        public UnityEvent<int> OnButtonReleased = new ();
+        public UnityEvent<int> OnButtonReleased = new UnityEvent<int>();
 
         /// <summary>
         /// 笔的可见性
@@ -267,7 +267,7 @@ namespace KmaxXR
         {
             var delta = startPointPosition - lastStartPointPosition;
             //Debug.Log($"Stylus GetAxis: {startPointPosition} - {lastStartPointPosition} = {delta}");
-            
+
             //var maxValue = Mathf.Min(Screen.width, Screen.height);
             var maxValue = rayLength/10;
             delta = Vector3.ClampMagnitude(delta, maxValue);

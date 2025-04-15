@@ -3,12 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using System.Text;
-using UnityEngine.Device;
 
 namespace KmaxXR
 {
+    /// <summary>
+    /// 头部/眼部追踪器
+    /// </summary>
+    [DefaultExecutionOrder(ScriptPriority)]
     public class HeadTracker : BaseTracker, IEyeTracker
     {
+        /// <summary>
+        /// 脚本执行次序
+        /// </summary>
+        const int ScriptPriority = XRRig.ScriptPriority + 10;
         /// <summary>
         /// 超过3秒没有检测到眼部将触发眼部位置回归及眼部丢失事件。
         /// </summary>
@@ -27,6 +34,9 @@ namespace KmaxXR
         public bool StopTrackingOnDestroy = false;
 
         private EyePose _eyePose;
+        /// <summary>
+        /// 眼部位置及姿态
+        /// </summary>
         public EyePose eyePose => _eyePose;
         public bool EyeVisible => _eyePose.visible;
 
@@ -130,6 +140,15 @@ namespace KmaxXR
         }
 
         /// <summary>
+        /// 开始追踪并指定显示模式
+        /// </summary>
+        /// <param name="sbs">是否左右</param>
+        public virtual void StartTracking(bool sbs)
+        {
+            KmaxNative.SetTracking(true, sbs);
+        }
+
+        /// <summary>
         /// 停止追踪
         /// </summary>
         public virtual void StopTracking()
@@ -144,10 +163,14 @@ namespace KmaxXR
             isPaused = !hasFocus;
             if (!isPaused)
             {
-                StartTracking();
+                // Debug.Log($"On focus: mono {XRRig.MonoDisplayMode}");
+                // 使用当前的状态恢复
+                var isSBS = !XRRig.MonoDisplayMode;
+                StartTracking(isSBS);
             }
             else
             {
+                // Debug.Log($"On lost focus: mono {XRRig.MonoDisplayMode}");
                 StopTracking();
             }
         }

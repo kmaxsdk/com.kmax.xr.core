@@ -25,12 +25,17 @@ namespace KmaxXR
         /// 设备采用的渲染模式，由设备支持的模式和应用端选择共同决定。
         /// </summary>
         public static RenderMode RenderModeInUse => renderMode;
-        
+
         /// <summary>
         /// 追踪是否开启
         /// </summary>
         private static bool trackingState = false;
-        
+
+        /// <summary>
+        /// 是否立体显示，屏幕硬件的显示状态
+        /// </summary>
+        private static bool display3d = false;
+
         /// <summary>
         /// 设置追踪状态及设备显示模式
         /// </summary>
@@ -38,10 +43,13 @@ namespace KmaxXR
         /// <param name="sbs">是否切换成立体显示模式</param>
         internal static void SetTracking(bool enable, bool sbs)
         {
+            if (enable != trackingState || sbs != display3d)
+            {
+                Log(string.Format("{0} tracking, display {1}", enable ? "start" : "stop", sbs ? "3d" : "2d"));
+            }
+#if UNITY_ANDROID && !UNITY_EDITOR
             if (trackingState == enable) { return; }
             trackingState = enable;
-            Debug.Log(enable ? "start tracking" : "stop tracking");
-#if UNITY_ANDROID && !UNITY_EDITOR
             renderMode = RenderMode.SideBySide; // 安卓默认的显示模式
             using (AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
             using (AndroidJavaObject jo = jc.GetStatic<AndroidJavaObject>("currentActivity"))
@@ -58,14 +66,29 @@ namespace KmaxXR
             }
 #elif UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX
             InitializeAndDeterminRenderMode();
-            kxrSetTracking(enable ? 1 : 0);
-            if (!UsingStereoscopic) // 未使用软件接口的立体显示则手动切换显示模式
+            if (trackingState != enable)
             {
+                trackingState = enable;
+                kxrSetTracking(enable ? 1 : 0);
+            }
+            // 未使用软件接口的立体显示则手动切换显示模式
+            if (!UsingStereoscopic && display3d != sbs)
+            {
+                display3d = sbs;
 #if !UNITY_EDITOR
                 kxrSetDisplayMode(sbs ? 1 : 0);
 #endif
             }
 #endif
+        }
+
+        /// <summary>
+        /// 获取追踪及显示状态
+        /// </summary>
+        /// <returns>追踪是否开启，是否立体显示</returns>
+        public static (bool, bool) GetTracking()
+        {
+            return (trackingState, display3d);
         }
 
         /// <summary>

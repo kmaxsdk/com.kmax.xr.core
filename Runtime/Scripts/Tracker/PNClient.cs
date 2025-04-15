@@ -196,7 +196,7 @@ namespace KmaxXR
             {
                 if (KmaxNative.UsingStereoscopic)
                 {
-                    var rig = FindObjectOfType<XRRig>();
+                    var rig = FindFirstObjectByType<XRRig>();
                     if (!rig)
                     {
                         Debug.LogError("Can not find XRRig!");
@@ -207,7 +207,7 @@ namespace KmaxXR
                     int width = 1920, height = 1080;
                     RenderTextureFormat format;
                     var texs = (rig.StereoRender as VRRenderer).RenderToTexture(width, height, out format);
-                    rig.SwitchViewMode(false);
+                    rig.SetWorkMode(false);
                     var iformat = KmaxNative.GetDXGIFormatForRenderTextureFormat(format);
                     KmaxNative.kxrSetTexture(texs[0].GetNativeTexturePtr(), texs[1].GetNativeTexturePtr(), iformat);
                 }
