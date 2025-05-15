@@ -3,6 +3,12 @@
 [中文修改日志](CHANGELOG.md)  
 All notable changes to this project will be documented in this file.
 
+## [2.3.11] - 2025-04-14
+
+### Added
+
+- Common PC compatible
+
 ## [2.3.1] - 2025-02-25
 
 ### Added

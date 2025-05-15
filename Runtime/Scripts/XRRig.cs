@@ -184,6 +184,7 @@ namespace KmaxXR
             if (stereoCamera != null && stereoCamera is VRRenderer renderer)
             {
                 if (sbs) renderer.SideBySide();
+                else if (KmaxNative.RenderModeInUse == KmaxNative.RenderMode.Stereoscopic) renderer.Stereoscopic();
                 else renderer.Mono();
             }
         }

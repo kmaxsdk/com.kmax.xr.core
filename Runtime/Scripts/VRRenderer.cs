@@ -76,6 +76,23 @@ namespace KmaxXR
             }
         }
 
+        /// <summary>
+        /// 立体显示
+        /// </summary>
+        public virtual void Stereoscopic()
+        {
+            leftEye.rect = new Rect(0, 0, 1, 1);
+            rightEye.rect = new Rect(0, 0, 1, 1);
+            if (!XRRig.IsSRP)
+            {
+                leftEye.stereoTargetEye = StereoTargetEyeMask.Left;
+                rightEye.stereoTargetEye = StereoTargetEyeMask.Right;
+            }
+            centerEye.enabled = false;
+            leftEye.enabled = true;
+            rightEye.enabled = true;
+        }
+
         internal override void Validate()
         {
             centerEye = GetComponent<Camera>();

@@ -3,6 +3,12 @@
 所有的改动都记录在这里  
 [Chanagelog English](CHANGELOG.en.md)
 
+## [2.3.11] - 2025-04-14
+
+### Added
+
+- 普通PC兼容
+
 ## [2.3.1] - 2025-02-25
 
 ### Added
