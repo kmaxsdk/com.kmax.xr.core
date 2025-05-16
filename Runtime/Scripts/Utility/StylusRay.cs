@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using KmaxXR.Extensions;
 
 namespace KmaxXR
 {
@@ -59,7 +58,7 @@ namespace KmaxXR
             stylus = pointer as KmaxStylus;
             this.pointer.position = stylus.PointerPosition;
             if (autoHidePointer) this.pointer.gameObject.SetActive(stylus.CurrentHitObject);
-            
+
             if (XRRig.ViewScale != scaleFactor)
             {
                 SetLineFactor(XRRig.ViewScale);
@@ -98,8 +97,32 @@ namespace KmaxXR
             {
                 Vector3 p1 = p0 + Vector3.Project(p2 - p0, Vector3.forward);
                 //line.SetPosition(0, p0);
-                line.SetBezierCurve(
-                    1, Vector3.Lerp(p0, p1, this.CurveStartPivot), p1, p2);
+                SetBezierCurve(line, 1, Vector3.Lerp(p0, p1, this.CurveStartPivot), p1, p2);
+            }
+        }
+
+        public static void SetBezierCurve(LineRenderer l,
+            int startIndex, Vector3 p0, Vector3 p1, Vector3 p2)
+        {
+            SetBezierCurve(l, startIndex, l.positionCount - startIndex, p0, p1, p2);
+        }
+
+        public static void SetBezierCurve(LineRenderer l,
+            int startIndex, int length, Vector3 p0, Vector3 p1, Vector3 p2)
+        {
+            float t = 0;
+            float step = 1 / (float)(length - 1);
+
+            for (int i = startIndex; i < startIndex + length; ++i)
+            {
+                Vector3 position =
+                    (p0 * Mathf.Pow(1 - t, 2)) +
+                    (p1 * 2 * (1 - t) * t) +
+                    (p2 * Mathf.Pow(t, 2));
+
+                l.SetPosition(i, position);
+
+                t += step;
             }
         }
     }
