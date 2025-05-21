@@ -207,7 +207,6 @@ namespace KmaxXR
                     int width = 1920, height = 1080;
                     RenderTextureFormat format;
                     var texs = (rig.StereoRender as VRRenderer).RenderToTexture(width, height, out format);
-                    rig.SetWorkMode(false);
                     var iformat = KmaxNative.GetDXGIFormatForRenderTextureFormat(format);
                     KmaxNative.kxrSetTexture(texs[0].GetNativeTexturePtr(), texs[1].GetNativeTexturePtr(), iformat);
                 }

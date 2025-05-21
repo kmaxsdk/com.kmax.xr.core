@@ -19,24 +19,20 @@ namespace KmaxXR
         [DllImport(CoreDllName)]
         internal static extern int kxrGetTrackData(ref TrackerData data);
 
-        /// <summary>
-        /// 是否采用软件接口立体显示
-        /// </summary>
-        public static bool UsingStereoscopic => renderMode == RenderMode.Stereoscopic;
         private static int initCode = -1;
         /// <summary>
         /// 初始化并确定立体显示方法
         /// </summary>
         /// <returns>初始化结果</returns>
-        internal static int InitializeAndDeterminRenderMode()
+        internal static int InitializeAndDeterminDisplayMode()
         {
             if (initCode >= 0) return initCode;
             // 获取支持的VR模式
             int vrMode = kxrGetSupportedVRMode();
-            renderMode = GetFirstFlag<RenderMode>(vrMode);
-            if (renderMode == RenderMode.Mono) // 不支持立体显示
+            displayMode = GetFirstFlag<DisplayMode>(vrMode);
+            if (displayMode == DisplayMode.Mono) // 不支持立体显示
             {
-                Log($"Use RenderMode {renderMode}");
+                Log($"Use DisplayMode {displayMode}");
                 return initCode = 1;
             }
 
@@ -46,7 +42,7 @@ namespace KmaxXR
             bool enable = UnityEditor.EditorPrefs.GetBool(XR_DISPLAY_ENABLE);
             if (!enable)
             {
-                renderMode = RenderMode.Mono;
+                displayMode = DisplayMode.Mono;
                 return initCode = 1;
             }
 #endif
@@ -56,7 +52,7 @@ namespace KmaxXR
             Log("Current Graphics Device Type: " + currentGraphicsDeviceType);
             if (currentGraphicsDeviceType != GraphicsDeviceType.Direct3D11)
             {
-                renderMode = RenderMode.SideBySide;
+                displayMode = DisplayMode.SideBySide;
                 return initCode = 2;
             }
 
@@ -65,13 +61,13 @@ namespace KmaxXR
             initCode = kxrCreateStereoOverlay(System.IntPtr.Zero, Tex.GetNativeTexturePtr(), (int)QualitySettings.activeColorSpace);
             if (initCode == 0)
             {
-                renderMode = RenderMode.Stereoscopic;
+                displayMode = DisplayMode.Stereoscopic;
             }
             else
             {
-                renderMode = RenderMode.SideBySide;
+                displayMode = DisplayMode.SideBySide;
             }
-            Log($"Use RenderMode {renderMode}. Return code {initCode}.");
+            Log($"Use DisplayMode {displayMode}. Return code {initCode}.");
             UnityEngine.Object.Destroy(Tex);
             return initCode;
         }

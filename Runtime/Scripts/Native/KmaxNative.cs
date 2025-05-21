@@ -9,9 +9,9 @@ namespace KmaxXR
     public static partial class KmaxNative
     {
         /// <summary>
-        /// 渲染模式
+        /// 设备端显示模式
         /// </summary>
-        public enum RenderMode
+        public enum DisplayMode
         {
             Mono = 0,
             Stereoscopic = 1 << 0,
@@ -19,12 +19,17 @@ namespace KmaxXR
             Autostereoscopy = 1 << 2,
         }
 
-        private static RenderMode renderMode = RenderMode.Mono;
+        private static DisplayMode displayMode = DisplayMode.Mono;
 
         /// <summary>
-        /// 设备采用的渲染模式，由设备支持的模式和应用端选择共同决定。
+        /// 设备主要的/建议的显示模式，由设备支持的模式和显示配置共同决定。
         /// </summary>
-        public static RenderMode RenderModeInUse => renderMode;
+        public static DisplayMode PrimaryDisplayMode => displayMode;
+
+        /// <summary>
+        /// 是否采用图形接口立体显示
+        /// </summary>
+        public static bool UsingStereoscopic => displayMode == DisplayMode.Stereoscopic;
 
         /// <summary>
         /// 追踪是否开启
@@ -43,14 +48,14 @@ namespace KmaxXR
         /// <param name="sbs">是否切换成立体显示模式</param>
         internal static void SetTracking(bool enable, bool sbs)
         {
-            if (enable != trackingState || sbs != display3d)
+            if (enable != trackingState)
             {
                 Log(string.Format("{0} tracking, display {1}", enable ? "start" : "stop", sbs ? "3d" : "2d"));
             }
 #if UNITY_ANDROID && !UNITY_EDITOR
             if (trackingState == enable) { return; }
             trackingState = enable;
-            renderMode = RenderMode.SideBySide; // 安卓默认的显示模式
+            displayMode = DisplayMode.SideBySide; // 安卓默认的显示模式
             using (AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
             using (AndroidJavaObject jo = jc.GetStatic<AndroidJavaObject>("currentActivity"))
             using (AndroidJavaClass jutil = new AndroidJavaClass("com.kmax.track_conn.AidlConn"))
@@ -58,14 +63,14 @@ namespace KmaxXR
                 // 如果无法获取到设备ID则使用单目渲染
                 if (string.IsNullOrEmpty(jutil.CallStatic<string>("getDeviceId", jo)))
                 {
-                    renderMode = RenderMode.Mono;
+                    displayMode = DisplayMode.Mono;
                 }
                 //jutil.CallStatic("validate", jo);
                 if (enable) jutil.CallStatic("Open", jo, sbs);
                 else jutil.CallStatic("Close", jo);
             }
 #elif UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX
-            InitializeAndDeterminRenderMode();
+            InitializeAndDeterminDisplayMode();
             if (trackingState != enable)
             {
                 trackingState = enable;

@@ -133,7 +133,7 @@ namespace KmaxXR
             else
             {
                 // 初始化显示模式
-                mono = KmaxNative.RenderModeInUse == KmaxNative.RenderMode.Mono;
+                mono = KmaxNative.PrimaryDisplayMode == KmaxNative.DisplayMode.Mono;
             }
             SetWorkMode(!mono);
         }
@@ -175,18 +175,47 @@ namespace KmaxXR
         internal void SetWorkMode(bool sbs)
         {
             if (!Application.isPlaying) return;
+
             // 调整输入
             var inputModule = FindFirstObjectByType<KmaxInputModule>();
             if (inputModule != null) // 单目则不需要改写鼠标位置
-                inputModule.MouseOverride = sbs;
+                inputModule.MouseOverride = sbs && !KmaxNative.UsingStereoscopic;
 
             // 改渲染方式
             if (stereoCamera != null && stereoCamera is VRRenderer renderer)
             {
+                // 使用图形接口时使用固定的相机渲染模式
+                if (KmaxNative.UsingStereoscopic)
+                {
+                    renderer.Stereoscopic();
+                    return;
+                }
+
                 if (sbs) renderer.SideBySide();
-                else if (KmaxNative.RenderModeInUse == KmaxNative.RenderMode.Stereoscopic) renderer.Stereoscopic();
                 else renderer.Mono();
             }
+        }
+
+        /// <summary>
+        /// 手动设置显示模式
+        /// </summary>
+        /// <param name="stereo">是否立体显示</param>
+        public static bool ManuallySetDisplayMode(bool stereo)
+        {
+            if (rig == null)
+            {
+                Debug.LogError("XRRig not initialized");
+                return false;
+            }
+            var tracker = rig.stereoCamera ? rig.stereoCamera.GetComponent<HeadTracker>() : null;
+            if (tracker != null)
+            {
+                if (stereo) tracker.StartTracking();
+                else tracker.StopTracking();
+            }
+            MonoDisplayMode = !stereo;
+
+            return true;
         }
 
 #if UNITY_EDITOR
