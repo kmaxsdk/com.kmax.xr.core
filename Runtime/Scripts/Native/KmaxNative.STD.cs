@@ -32,7 +32,6 @@ namespace KmaxXR
             displayMode = GetFirstFlag<DisplayMode>(vrMode);
             if (displayMode == DisplayMode.Mono) // 不支持立体显示
             {
-                Log($"Use DisplayMode {displayMode}");
                 return initCode = 1;
             }
 
@@ -59,15 +58,8 @@ namespace KmaxXR
             int width = 32, height = 32;
             var Tex = new Texture2D(width, height);
             initCode = kxrCreateStereoOverlay(System.IntPtr.Zero, Tex.GetNativeTexturePtr(), (int)QualitySettings.activeColorSpace);
-            if (initCode == 0)
-            {
-                displayMode = DisplayMode.Stereoscopic;
-            }
-            else
-            {
-                displayMode = DisplayMode.SideBySide;
-            }
-            Log($"Use DisplayMode {displayMode}. Return code {initCode}.");
+            displayMode = initCode == 0 ? DisplayMode.Stereoscopic : DisplayMode.SideBySide;
+            Log($"Return code {initCode}.");
             UnityEngine.Object.Destroy(Tex);
             return initCode;
         }

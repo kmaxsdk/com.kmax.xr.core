@@ -42,6 +42,22 @@ namespace KmaxXR
         private static bool display3d = false;
 
         /// <summary>
+        /// 初始化，检查设备确定支持的显示模式。
+        /// </summary>
+        /// <returns></returns>
+        internal static bool Initialize()
+        {
+#if UNITY_STANDALONE
+            InitializeAndDeterminDisplayMode();
+#elif UNITY_ANDROID && !UNITY_EDITOR
+            // 如果无法获取到设备ID则使用单目渲染
+            displayMode = string.IsNullOrEmpty(DeviceId) ? DisplayMode.Mono : DisplayMode.SideBySide;
+#endif
+            Log($"Use DisplayMode {displayMode}.");
+            return true;
+        }
+
+        /// <summary>
         /// 设置追踪状态及设备显示模式
         /// </summary>
         /// <param name="enable">开启/关闭追踪</param>
@@ -55,22 +71,15 @@ namespace KmaxXR
 #if UNITY_ANDROID && !UNITY_EDITOR
             if (trackingState == enable) { return; }
             trackingState = enable;
-            displayMode = DisplayMode.SideBySide; // 安卓默认的显示模式
             using (AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
             using (AndroidJavaObject jo = jc.GetStatic<AndroidJavaObject>("currentActivity"))
             using (AndroidJavaClass jutil = new AndroidJavaClass("com.kmax.track_conn.AidlConn"))
             {
-                // 如果无法获取到设备ID则使用单目渲染
-                if (string.IsNullOrEmpty(jutil.CallStatic<string>("getDeviceId", jo)))
-                {
-                    displayMode = DisplayMode.Mono;
-                }
                 //jutil.CallStatic("validate", jo);
                 if (enable) jutil.CallStatic("Open", jo, sbs);
                 else jutil.CallStatic("Close", jo);
             }
 #elif UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX
-            InitializeAndDeterminDisplayMode();
             if (trackingState != enable)
             {
                 trackingState = enable;

@@ -110,6 +110,7 @@ namespace KmaxXR
                 KmaxNative.Log($"SDK Version: {KmaxNative.SDKVersion}");
                 KmaxNative.Log($"View: {screen} x {viewScale}");
                 KmaxNative.EnableHighFPS = true; // for Android
+                KmaxNative.Initialize();
             }
             var pipeline = UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline;
             isSRP = pipeline != null;
