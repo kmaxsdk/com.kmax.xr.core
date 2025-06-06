@@ -9,7 +9,7 @@ using UnityEngine;
 namespace KmaxXR
 {
     public delegate void RemoteMsgHandler(byte[] bytes);
-    interface IPNRemote: IDisposable
+    interface IPNRemote : IDisposable
     {
         event RemoteMsgHandler OnMsg;
         void SendMsg(byte[] msg);
@@ -196,7 +196,11 @@ namespace KmaxXR
             {
                 if (KmaxNative.UsingStereoscopic)
                 {
+#if UNITY_2022_3_OR_NEWER
                     var rig = FindFirstObjectByType<XRRig>();
+#else
+                    var rig = FindObjectOfType<XRRig>();
+#endif
                     if (!rig)
                     {
                         Debug.LogError("Can not find XRRig!");

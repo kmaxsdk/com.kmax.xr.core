@@ -178,7 +178,11 @@ namespace KmaxXR
             if (!Application.isPlaying) return;
 
             // 调整输入
+#if UNITY_2022_3_OR_NEWER
             var inputModule = FindFirstObjectByType<KmaxInputModule>();
+#else
+            var inputModule = FindObjectOfType<KmaxInputModule>();
+#endif
             if (inputModule != null) // 单目则不需要改写鼠标位置
                 inputModule.MouseOverride = sbs && !KmaxNative.UsingStereoscopic;
 
