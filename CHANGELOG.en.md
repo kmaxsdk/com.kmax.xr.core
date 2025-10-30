@@ -3,6 +3,19 @@
 [中文修改日志](CHANGELOG.md)  
 All notable changes to this project will be documented in this file.
 
+## [2.5.0] - 2025-10-30
+
+### Added
+
+- Support Kmax G1 device
+
+## [2.4.1] - 2025-06-13
+
+### Fixed
+
+- Fixed error caused by the first scene being a normal scene
+- Fixed compilation errors in Unity versions below 2021
+
 ## [2.3.11] - 2025-04-14
 
 ### Added
