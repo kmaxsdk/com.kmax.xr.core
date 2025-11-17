@@ -33,7 +33,11 @@ namespace KmaxXR
         [MenuItem(GAMEOBJECT_EXT + "/Add XRRig Unpacked", true)]
         static bool AddXRRigValid()
         {
+#if UNITY_2022_3_OR_NEWER
             return GameObject.FindFirstObjectByType<XRRig>() == null;
+#else
+            return GameObject.FindObjectOfType<XRRig>() == null;
+#endif
         }
 
         [MenuItem(GAMEOBJECT_EXT + "/Convert to KmaxInputModule", false)]
@@ -57,20 +61,20 @@ namespace KmaxXR
         [MenuItem(GAMEOBJECT_EXT + "/Fix Canvas", false)]
         public static void FixCanvas()
         {
+            if (AddXRRigValid())
+            {
+                Debug.LogError("XRRig not found");
+                return;
+            }
             var caster = Selection.activeGameObject.GetComponent<KmaxUIRaycaster>();
             if (caster == null)
             {
-                caster = Selection.activeGameObject.AddComponent<KmaxUIRaycaster>();
+                caster = Undo.AddComponent<KmaxUIRaycaster>(Selection.activeGameObject);
             }
             var fix = Selection.activeGameObject.GetComponent<UIScaler>();
             if (fix == null)
             {
-                fix = Selection.activeGameObject.AddComponent<UIScaler>();
-            }
-            if (GameObject.FindFirstObjectByType<XRRig>() == null)
-            {
-                Debug.LogError("XRRig not found");
-                return;
+                fix = Undo.AddComponent<UIScaler>(Selection.activeGameObject);
             }
             Undo.RegisterCompleteObjectUndo(Selection.activeTransform, "Fix Canvas");
             var canvas = Selection.activeGameObject.GetComponent<Canvas>();
