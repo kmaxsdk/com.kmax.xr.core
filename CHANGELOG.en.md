@@ -3,6 +3,12 @@
 [中文修改日志](CHANGELOG.md)  
 All notable changes to this project will be documented in this file.
 
+## [2.5.2] - 2025-12-01
+
+### Fixed
+
+- Solve the problem of stereoscopic display abnormality caused by inserting a secondary screen
+
 ## [2.5.0] - 2025-10-30
 
 ### Added
