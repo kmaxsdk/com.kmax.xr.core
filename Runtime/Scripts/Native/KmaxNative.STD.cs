@@ -55,10 +55,10 @@ namespace KmaxXR
                 return initCode = 2;
             }
 
-            int width = 32, height = 32;
+            int width = 2, height = 2;
             var Tex = new Texture2D(width, height);
             initCode = kxrCreateStereoOverlay(System.IntPtr.Zero, Tex.GetNativeTexturePtr(), (int)QualitySettings.activeColorSpace);
-            displayMode = initCode == 0 ? DisplayMode.Stereoscopic : DisplayMode.SideBySide;
+            displayMode = initCode == 0 ? DisplayMode.Stereoscopic : DisplayMode.Mono;
             Log($"Return code {initCode}.");
             UnityEngine.Object.Destroy(Tex);
             return initCode;
