@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using UnityEngine;
 #if UNITY_ANDROID
 using UnityEngine.Android;
@@ -121,6 +122,24 @@ namespace KmaxXR
                 }
 #else
                 Debug.LogWarning("DeviceId is not support on this platform.");
+                return string.Empty;
+#endif
+            }
+        }
+
+        /// <summary>
+        /// 设备型号
+        /// </summary>
+        public static string DeviceModel
+        {
+            get
+            {
+#if UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX
+                StringBuilder stringBuilder = new StringBuilder(256);
+                kxrGetDeviceModel(stringBuilder, stringBuilder.Capacity);
+                return stringBuilder.ToString();
+#else
+                Debug.LogWarning("DeviceModel is not support on this platform.");
                 return string.Empty;
 #endif
             }

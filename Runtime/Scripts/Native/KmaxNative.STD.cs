@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -10,6 +11,12 @@ namespace KmaxXR
         const string CoreDllName = "kXRCore";
         [DllImport(CoreDllName)]
         internal static extern int kxrGetSupportedVRMode();
+        [DllImport(CoreDllName)]
+        internal static extern void kxrSetWorkingVRMode(int mode);
+        [DllImport(CoreDllName)]
+        internal static extern int kxrGetWorkingVRMode();
+        [DllImport(CoreDllName, CharSet = CharSet.Ansi)]
+        internal static extern void kxrGetDeviceModel(StringBuilder buffer, int bufferSize);
         [DllImport(CoreDllName)]
         internal static extern int kxrSetTracking(int s_tracking);
         [DllImport(CoreDllName)]
@@ -51,16 +58,16 @@ namespace KmaxXR
             Log("Current Graphics Device Type: " + currentGraphicsDeviceType);
             if (currentGraphicsDeviceType != GraphicsDeviceType.Direct3D11)
             {
-                displayMode = DisplayMode.SideBySide;
+                displayMode = DisplayMode.Mono;
                 return initCode = 2;
             }
 
             int width = 2, height = 2;
             var Tex = new Texture2D(width, height);
             initCode = kxrCreateStereoOverlay(System.IntPtr.Zero, Tex.GetNativeTexturePtr(), (int)QualitySettings.activeColorSpace);
-            displayMode = initCode == 0 ? DisplayMode.Stereoscopic : DisplayMode.Mono;
             Log($"Return code {initCode}.");
-            UnityEngine.Object.Destroy(Tex);
+            Object.Destroy(Tex);
+            displayMode = (DisplayMode)kxrGetWorkingVRMode();
             return initCode;
         }
 

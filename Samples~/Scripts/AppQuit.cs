@@ -14,6 +14,7 @@ public class AppQuit : MonoBehaviour
         if (title != null)
         {
             title.text += $"\nSDK Version: {KmaxNative.SDKVersion}\n{KmaxNative.DeviceId}";
+            title.text += $"\nDevice Model: {KmaxNative.DeviceModel}";
         }
     }
 
