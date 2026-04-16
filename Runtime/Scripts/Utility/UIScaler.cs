@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -83,18 +83,15 @@ namespace KmaxXR
         [ContextMenu("AutoFix")]
         public void AutoFix()
         {
-            FixSize(XRRig.ViewSize);
+            FixSize(XRRig.ViewSize, GetRuntimeDisplaySize());
             FixPose(XRRig.ScreenTrans);
         }
 
-        public void FixSize(Vector2 size)
+        public void FixSize(Vector2 size, Vector2Int displaySize)
         {
             RectTransform rt = transform as RectTransform;
             OnValidate();
-            // 单眼画面时，使用缩放比例
-            var canvasSize = XRRig.MonoDisplayMode && Application.isPlaying ?// 编辑器中屏幕大小不一定是Game视图大小
-                CaculateScaledSize() :
-                CaculateScaledSize(KmaxNative.DeviceResolution);
+            var canvasSize = CaculateScaledSize(displaySize);
             var scacleX = size.x / canvasSize.x;
             var scacleY = size.y / canvasSize.y;
             var scaleValue = Mathf.Min(scacleX, scacleY);
@@ -102,9 +99,12 @@ namespace KmaxXR
             rt.sizeDelta = canvasSize;
         }
 
-        Vector2 CaculateScaledSize()
+        Vector2Int GetRuntimeDisplaySize()
         {
-            return CaculateScaledSize(Screen.width, Screen.height);
+            // 运行时单目模式跟随当前窗口，双目模式按设备分辨率计算。
+            return XRRig.MonoDisplayMode ?
+                new Vector2Int(Screen.width, Screen.height) :
+                KmaxNative.DeviceResolution;
         }
 
         Vector2 CaculateScaledSize(Vector2Int size)

@@ -1,7 +1,20 @@
-﻿# Changelog
+# Changelog
 
 [中文修改日志](CHANGELOG.md)  
 All notable changes to this project will be documented in this file.
+
+## [2.6.1] - 2026-04-02
+
+### Fixed
+
+- Fixed `Fix Canvas` using the wrong window size in the editor
+
+## [2.6.0] - 2026-02-06
+
+### Changed
+
+- Support different screen aspect ratios
+- Use window handles in native code to switch stereoscopic display
 
 ## [2.5.2] - 2025-12-01
 

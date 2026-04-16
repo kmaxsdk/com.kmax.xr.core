@@ -1,5 +1,6 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEditor;
@@ -79,7 +80,7 @@ namespace KmaxXR
             Undo.RegisterCompleteObjectUndo(Selection.activeTransform, "Fix Canvas");
             var canvas = Selection.activeGameObject.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.WorldSpace;
-            fix.FixSize(XRRig.ViewSize);
+            fix.FixSize(XRRig.ViewSize, GetEditorGameViewSize());
             fix.FixPose(XRRig.ScreenTrans);
             EditorUtility.SetDirty(Selection.activeTransform);
         }
@@ -200,6 +201,22 @@ namespace KmaxXR
             }
 
             return null;
+        }
+
+        static Vector2Int GetEditorGameViewSize()
+        {
+            var gameViewType = typeof(Editor).Assembly.GetType("UnityEditor.GameView");
+            var method = gameViewType?.GetMethod(
+                "GetSizeOfMainGameView",
+                BindingFlags.NonPublic | BindingFlags.Static);
+
+            if (method?.Invoke(null, null) is Vector2 size &&
+                size.x > 0 && size.y > 0)
+            {
+                return Vector2Int.RoundToInt(size);
+            }
+
+            return new Vector2Int(Mathf.Max(Screen.width, 1), Mathf.Max(Screen.height, 1));
         }
     }
 
