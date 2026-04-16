@@ -123,6 +123,11 @@ namespace KmaxXR
             {
                 XRRig.Screen.CalculateRect(true);
             }
+            else// 双目则使用设定的宽高比
+            {
+                var rsl = KmaxNative.DeviceResolution;
+                XRRig.Screen.SetRatio(rsl.x, rsl.y);
+            }
         }
 
         protected virtual float AnimationCurveValue(float t)

@@ -18,6 +18,10 @@ namespace KmaxXR
         [DllImport(CoreDllName, CharSet = CharSet.Ansi)]
         internal static extern void kxrGetDeviceModel(StringBuilder buffer, int bufferSize);
         [DllImport(CoreDllName)]
+        internal static extern int kxrGetDeviceSlant(ref float angle);
+        [DllImport(CoreDllName)]
+        internal static extern int kxrGetDeviceResolution(ref int width, ref int height);
+        [DllImport(CoreDllName)]
         internal static extern int kxrSetTracking(int s_tracking);
         [DllImport(CoreDllName)]
         internal static extern int kxrSetDisplayMode(int s_display);
@@ -62,13 +66,21 @@ namespace KmaxXR
                 return initCode = 2;
             }
 
+            CreateXRLayer();
+            displayMode = (DisplayMode)kxrGetWorkingVRMode();
+            return initCode;
+        }
+
+        /// <summary>
+        /// 创建立体显示层
+        /// </summary>
+        internal static void CreateXRLayer()
+        {
             int width = 2, height = 2;
             var Tex = new Texture2D(width, height);
             initCode = kxrCreateStereoOverlay(System.IntPtr.Zero, Tex.GetNativeTexturePtr(), (int)QualitySettings.activeColorSpace);
             Log($"Return code {initCode}.");
             Object.Destroy(Tex);
-            displayMode = (DisplayMode)kxrGetWorkingVRMode();
-            return initCode;
         }
 
         internal static int GetDXGIFormatForRenderTextureFormat(RenderTextureFormat format)

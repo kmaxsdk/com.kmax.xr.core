@@ -93,7 +93,8 @@ namespace KmaxXR
             OnValidate();
             // 单眼画面时，使用缩放比例
             var canvasSize = XRRig.MonoDisplayMode && Application.isPlaying ?// 编辑器中屏幕大小不一定是Game视图大小
-                CaculateScaledSize() : resolution;
+                CaculateScaledSize() :
+                CaculateScaledSize(KmaxNative.DeviceResolution);
             var scacleX = size.x / canvasSize.x;
             var scacleY = size.y / canvasSize.y;
             var scaleValue = Mathf.Min(scacleX, scacleY);
@@ -101,14 +102,24 @@ namespace KmaxXR
             rt.sizeDelta = canvasSize;
         }
 
+        Vector2 CaculateScaledSize()
+        {
+            return CaculateScaledSize(Screen.width, Screen.height);
+        }
+
+        Vector2 CaculateScaledSize(Vector2Int size)
+        {
+            return CaculateScaledSize(size.x, size.y);
+        }
+
         /// <summary>
         /// 计算缩放后的画布大小
         /// </summary>
         /// <returns>画布大小</returns>
-        Vector2 CaculateScaledSize()
+        Vector2 CaculateScaledSize(int screenWidth, int screenHeight)
         {
             //var displaySize = ThisCanvas.renderingDisplaySize;// 在URP中有问题
-            var displaySize = new Vector2(Screen.width, Screen.height);
+            var displaySize = new Vector2(screenWidth, screenHeight);
 
             // 计算宽度和高度比例
             float logWidth = displaySize.x / resolution.x;

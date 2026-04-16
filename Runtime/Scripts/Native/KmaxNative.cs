@@ -145,6 +145,24 @@ namespace KmaxXR
             }
         }
 
+        public static Vector2Int DeviceResolution
+        {
+            get
+            {
+                int width = Screen.width, height = Screen.height;
+#if UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX
+                kxrGetDeviceResolution(ref width, ref height);
+#elif UNITY_ANDROID && !UNITY_EDITOR
+                if (width / height > 2)
+                {
+                    // 全幅左右屏幕
+                    width /= 2;
+                }
+#endif
+                return new Vector2Int(width, height);
+            }
+        }
+
         public static Version SDKVersion => System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 
         internal static void Log(string message)

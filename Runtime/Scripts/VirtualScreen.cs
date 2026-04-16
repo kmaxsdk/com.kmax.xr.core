@@ -10,7 +10,7 @@ namespace KmaxXR
         public enum ScreenType { Screen15_6, Screen27, Screen24 }
         [SerializeField, Tooltip("首选的屏幕尺寸，通常保持同一个尺寸为基准保证各平台视觉一致性。")]
         ScreenType screenType;
-        
+
         public float ScreenSizeInch
         {
             get
@@ -60,6 +60,12 @@ namespace KmaxXR
             left = -right;
             top = height / 2f;
             bottom = -top;
+        }
+
+        internal void SetRatio(int x, int y)
+        {
+            ratio = new Vector2Int(x, y);
+            CalculateRect();
         }
 
         public override string ToString()

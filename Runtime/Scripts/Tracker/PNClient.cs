@@ -238,6 +238,30 @@ namespace KmaxXR
                     KmaxNative.kxrDestroyOverlay();
             }
 
+            /// <summary>
+            /// 打开立体显示层
+            /// </summary>
+            public void OpenXRLayer()
+            {
+                if (KmaxNative.UsingStereoscopic)
+                {
+                    KmaxNative.CreateXRLayer();
+                    // XRRig.ManuallySetDisplayMode(true);
+                }
+            }
+
+            /// <summary>
+            /// 关闭立体显示层
+            /// </summary>
+            public void CloseXRLayer()
+            {
+                if (KmaxNative.UsingStereoscopic)
+                {
+                    KmaxNative.kxrDestroyOverlay();
+                    // XRRig.ManuallySetDisplayMode(false);
+                }
+            }
+
         }
 #endif
         private UdpClient client;
