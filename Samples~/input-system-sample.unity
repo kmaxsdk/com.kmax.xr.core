@@ -852,7 +852,7 @@ MonoBehaviour:
   m_PointerBehavior: 0
   m_CursorLockBehavior: 0
   m_ScrollDeltaPerTick: 6
-  stylusDragThreshold: 10
+  stylusDragThreshold: 20
 --- !u!1 &395505673
 GameObject:
   m_ObjectHideFlags: 0

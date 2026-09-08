@@ -3,6 +3,12 @@
 所有的改动都记录在这里  
 [Chanagelog English](CHANGELOG.en.md)
 
+## [2.7.1] - 2026-09-08
+
+### Changed
+
+- 优化输入模块配置与迁移体验
+
 ## [2.7.0] - 2026-09-07
 
 ### Added

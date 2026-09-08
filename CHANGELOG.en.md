@@ -3,6 +3,12 @@
 [中文修改日志](CHANGELOG.md)  
 All notable changes to this project will be documented in this file.
 
+## [2.7.1] - 2026-09-08
+
+### Changed
+
+- Improved input module configuration and migration experience
+
 ## [2.7.0] - 2026-09-07
 
 ### Added

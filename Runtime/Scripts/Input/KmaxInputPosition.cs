@@ -5,14 +5,14 @@ namespace KmaxXR
     /// <summary>
     /// 提供左右格式立体渲染所需的输入坐标修正功能。
     /// </summary>
-    internal static class KmaxInputPosition
+    public static class KmaxInputPosition
     {
         private const int SplitCount = 2;
 
         /// <summary>
-        /// 获取或设置是否修正左右格式立体渲染下的输入坐标。
+        /// 获取是否修正左右格式立体渲染下的输入坐标。
         /// </summary>
-        internal static bool Enabled { get; set; }
+        public static bool Enabled { get; internal set; }
 
         internal static Vector2 Correct(Vector2 position)
         {

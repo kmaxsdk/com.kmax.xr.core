@@ -8,9 +8,10 @@ namespace KmaxXR
     /// </summary>
     public class KmaxInputModule : StandaloneInputModule, IKmaxPointerEventHost
     {
-        [Space]
+        [Header("Kmax Settings")]
+        [Tooltip("触笔开始拖拽前允许的最大移动距离（像素）。")]
         [SerializeField]
-        private int stylusDragThreshold = 10;
+        private int stylusDragThreshold = 20;
 
         private KmaxPointerEventProcessor pointerProcessor;
 

@@ -1042,7 +1042,7 @@ MonoBehaviour:
   m_InputActionsPerSecond: 10
   m_RepeatDelay: 0.5
   m_ForceModuleActive: 0
-  stylusDragThreshold: 10
+  stylusDragThreshold: 20
 --- !u!1 &1348845933
 GameObject:
   m_ObjectHideFlags: 0

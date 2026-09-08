@@ -111,7 +111,7 @@ namespace KmaxXR
             return ConvertInputModuleValid() && GetInputSystemModuleType() != null;
         }
 
-        static System.Type GetInputSystemModuleType()
+        internal static System.Type GetInputSystemModuleType()
         {
             return System.Type.GetType(INPUT_SYSTEM_MODULE_TYPE);
         }
