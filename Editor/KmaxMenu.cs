@@ -13,9 +13,20 @@ namespace KmaxXR
     /// </summary>
     public class KmaxMenu
     {
+        /// <summary>
+        /// 编辑器菜单中显示的公司名称。
+        /// </summary>
         public const string COMPANY_NAME = "Kmax";
         const string GAMEOBJECT_EXT = "GameObject/" + COMPANY_NAME;
+        const string INPUT_SYSTEM_MODULE_TYPE =
+            "KmaxXR.KmaxInputSystemUIInputModule, Kmax.InputSystem";
+        /// <summary>
+        /// 立体显示开关的编辑器首选项键。
+        /// </summary>
         public const string XR_DISPLAY_ENABLE = "EnableStereoDisplay";
+        /// <summary>
+        /// 立体显示开关的菜单路径。
+        /// </summary>
         public const string MENU_XR_ENABLE = COMPANY_NAME + "/Enable Stereo Display";
 
         [MenuItem(GAMEOBJECT_EXT + "/Add XRRig", false, 10)]
@@ -44,21 +55,70 @@ namespace KmaxXR
         [MenuItem(GAMEOBJECT_EXT + "/Convert to KmaxInputModule", false)]
         static void ConvertInputModule()
         {
-            var cs = Selection.activeGameObject.GetComponents<BaseInputModule>();
-            foreach (var item in cs)
+#if ENABLE_INPUT_SYSTEM
+            var inputSystemModuleType = GetInputSystemModuleType();
+            if (inputSystemModuleType != null)
             {
-                Undo.DestroyObjectImmediate(item);
+                ConvertInputModule(inputSystemModuleType);
+                return;
             }
-            Undo.AddComponent<KmaxInputModule>(Selection.activeGameObject);
+#endif
+            ConvertInputModule<KmaxInputModule>();
+        }
+
+        [MenuItem(GAMEOBJECT_EXT + "/Convert to KmaxInputModule (Legacy)", false)]
+        static void ConvertLegacyInputModule()
+        {
+            ConvertInputModule<KmaxInputModule>();
+        }
+
+        [MenuItem(GAMEOBJECT_EXT + "/Convert to KmaxInputSystemUIInputModule", false)]
+        static void ConvertInputSystemModule()
+        {
+            var moduleType = GetInputSystemModuleType();
+            if (moduleType == null)
+            {
+                Debug.LogError("未安装或未启用 Unity Input System。");
+                return;
+            }
+            ConvertInputModule(moduleType);
+        }
+
+        static void ConvertInputModule<T>() where T : BaseInputModule
+        {
+            ConvertInputModule(typeof(T));
+        }
+
+        static void ConvertInputModule(System.Type moduleType)
+        {
+            var modules = Selection.activeGameObject.GetComponents<BaseInputModule>();
+            foreach (var module in modules)
+                Undo.DestroyObjectImmediate(module);
+            Undo.AddComponent(Selection.activeGameObject, moduleType);
         }
 
         [MenuItem(GAMEOBJECT_EXT + "/Convert to KmaxInputModule", true)]
+        [MenuItem(GAMEOBJECT_EXT + "/Convert to KmaxInputModule (Legacy)", true)]
         static bool ConvertInputModuleValid()
         {
             return Selection.activeGameObject != null &&
                 Selection.activeGameObject.GetComponent<EventSystem>() != null;
         }
 
+        [MenuItem(GAMEOBJECT_EXT + "/Convert to KmaxInputSystemUIInputModule", true)]
+        static bool ConvertInputSystemModuleValid()
+        {
+            return ConvertInputModuleValid() && GetInputSystemModuleType() != null;
+        }
+
+        static System.Type GetInputSystemModuleType()
+        {
+            return System.Type.GetType(INPUT_SYSTEM_MODULE_TYPE);
+        }
+
+        /// <summary>
+        /// 将选中的画布转换为适用于 Kmax 立体渲染的画布。
+        /// </summary>
         [MenuItem(GAMEOBJECT_EXT + "/Fix Canvas", false)]
         public static void FixCanvas()
         {

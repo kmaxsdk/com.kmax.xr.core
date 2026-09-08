@@ -1,0 +1,26 @@
+{
+    "name": "KmaxXR.Core.Samples",
+    "rootNamespace": "KmaxXR.Demo",
+    "references": [
+        "Kmax.InputModule",
+        "KmaxXR.Core",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "KMAX_INPUT_SYSTEM"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "1.0.0",
+            "define": "KMAX_INPUT_SYSTEM"
+        }
+    ],
+    "noEngineReferences": false
+}

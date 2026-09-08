@@ -3,6 +3,19 @@
 [中文修改日志](CHANGELOG.md)  
 All notable changes to this project will be documented in this file.
 
+## [2.7.0] - 2026-09-07
+
+### Added
+
+- Added Unity Input System support
+- Added an Input System sample scene
+
+### Changed
+
+- Added Kmax stylus and touch-drag support to both the Legacy Input Manager and Input System backends
+- Made Input System support optional
+- Updated sample scripts for Legacy, Input System, and Both modes
+
 ## [2.6.1] - 2026-04-02
 
 ### Fixed

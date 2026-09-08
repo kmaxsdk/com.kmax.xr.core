@@ -1,16 +1,19 @@
-﻿#if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
-#define USE_INPUT_SYSTEM
-    using UnityEngine.InputSystem;
-    using UnityEngine.InputSystem.Controls;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
 #endif
-
 using UnityEngine;
 
 namespace KmaxXR.Demo
 {
+    /// <summary>
+    /// 演示如何通过 Unity 的两套输入后端与 Kmax 触笔控制相机移动。
+    /// </summary>
     public class SimpleCameraController : MonoBehaviour
     {
-        class CameraState
+        /// <summary>
+        /// 保存相机位置与旋转的插值状态。
+        /// </summary>
+        private class CameraState
         {
             public float yaw;
             public float pitch;
@@ -19,20 +22,19 @@ namespace KmaxXR.Demo
             public float y;
             public float z;
 
-            public void SetFromTransform(Transform t)
+            public void SetFromTransform(Transform target)
             {
-                pitch = t.eulerAngles.x;
-                yaw = t.eulerAngles.y;
-                roll = t.eulerAngles.z;
-                x = t.position.x;
-                y = t.position.y;
-                z = t.position.z;
+                pitch = target.eulerAngles.x;
+                yaw = target.eulerAngles.y;
+                roll = target.eulerAngles.z;
+                x = target.position.x;
+                y = target.position.y;
+                z = target.position.z;
             }
 
             public void Translate(Vector3 translation)
             {
                 Vector3 rotatedTranslation = Quaternion.Euler(pitch, yaw, roll) * translation;
-
                 x += rotatedTranslation.x;
                 y += rotatedTranslation.y;
                 z += rotatedTranslation.z;
@@ -43,21 +45,20 @@ namespace KmaxXR.Demo
                 yaw = Mathf.Lerp(yaw, target.yaw, rotationLerpPct);
                 pitch = Mathf.Lerp(pitch, target.pitch, rotationLerpPct);
                 roll = Mathf.Lerp(roll, target.roll, rotationLerpPct);
-                
                 x = Mathf.Lerp(x, target.x, positionLerpPct);
                 y = Mathf.Lerp(y, target.y, positionLerpPct);
                 z = Mathf.Lerp(z, target.z, positionLerpPct);
             }
 
-            public void UpdateTransform(Transform t)
+            public void UpdateTransform(Transform target)
             {
-                t.eulerAngles = new Vector3(pitch, yaw, roll);
-                t.position = new Vector3(x, y, z);
+                target.eulerAngles = new Vector3(pitch, yaw, roll);
+                target.position = new Vector3(x, y, z);
             }
         }
-        
-        CameraState m_TargetCameraState = new CameraState();
-        CameraState m_InterpolatingCameraState = new CameraState();
+
+        private readonly CameraState targetCameraState = new CameraState();
+        private readonly CameraState interpolatingCameraState = new CameraState();
 
         [Header("Movement Settings")]
         [Tooltip("Exponential boost factor on translation, controllable by mouse wheel.")]
@@ -68,125 +69,129 @@ namespace KmaxXR.Demo
 
         [Header("Rotation Settings")]
         [Tooltip("X = Change in mouse position.\nY = Multiplicative factor for camera rotation.")]
-        public AnimationCurve mouseSensitivityCurve = new AnimationCurve(new Keyframe(0f, 0.5f, 0f, 5f), new Keyframe(1f, 2.5f, 0f, 0f));
+        public AnimationCurve mouseSensitivityCurve = new AnimationCurve(
+            new Keyframe(0f, 0.5f, 0f, 5f),
+            new Keyframe(1f, 2.5f, 0f, 0f));
 
         [Tooltip("Time it takes to interpolate camera rotation 99% of the way to the target."), Range(0.001f, 1f)]
         public float rotationLerpTime = 0.01f;
 
         [Tooltip("Whether or not to invert our Y axis for mouse input to rotation.")]
-        public bool invertY = false;
+        public bool invertY;
 
-        void OnEnable()
+        private void OnEnable()
         {
-            m_TargetCameraState.SetFromTransform(transform);
-            m_InterpolatingCameraState.SetFromTransform(transform);
+            targetCameraState.SetFromTransform(transform);
+            interpolatingCameraState.SetFromTransform(transform);
         }
 
-        Vector3 GetInputTranslationDirection()
+        private Vector3 GetInputTranslationDirection()
         {
-            Vector3 direction = new Vector3();
-            if (Input.GetKey(KeyCode.W))
-            {
-                direction += Vector3.forward;
-            }
-            if (Input.GetKey(KeyCode.S))
-            {
-                direction += Vector3.back;
-            }
-            if (Input.GetKey(KeyCode.A))
-            {
-                direction += Vector3.left;
-            }
-            if (Input.GetKey(KeyCode.D))
-            {
-                direction += Vector3.right;
-            }
-            if (Input.GetKey(KeyCode.Q))
-            {
-                direction += Vector3.down;
-            }
-            if (Input.GetKey(KeyCode.E))
-            {
-                direction += Vector3.up;
-            }
+            Vector3 direction = Vector3.zero;
+#if ENABLE_INPUT_SYSTEM
+            var keyboard = Keyboard.current;
+            if (keyboard == null)
+                return direction;
+            if (keyboard.wKey.isPressed) direction += Vector3.forward;
+            if (keyboard.sKey.isPressed) direction += Vector3.back;
+            if (keyboard.aKey.isPressed) direction += Vector3.left;
+            if (keyboard.dKey.isPressed) direction += Vector3.right;
+            if (keyboard.qKey.isPressed) direction += Vector3.down;
+            if (keyboard.eKey.isPressed) direction += Vector3.up;
+#elif ENABLE_LEGACY_INPUT_MANAGER
+            if (Input.GetKey(KeyCode.W)) direction += Vector3.forward;
+            if (Input.GetKey(KeyCode.S)) direction += Vector3.back;
+            if (Input.GetKey(KeyCode.A)) direction += Vector3.left;
+            if (Input.GetKey(KeyCode.D)) direction += Vector3.right;
+            if (Input.GetKey(KeyCode.Q)) direction += Vector3.down;
+            if (Input.GetKey(KeyCode.E)) direction += Vector3.up;
+#endif
             return direction;
         }
 
-        void Update()
+        private void Update()
         {
             Vector3 translation = Vector3.zero;
+#if ENABLE_INPUT_SYSTEM
+            var keyboard = Keyboard.current;
+            var mouse = Mouse.current;
 
-#if ENABLE_LEGACY_INPUT_MANAGER
+            if (keyboard != null && keyboard.escapeKey.isPressed)
+                ExitSample();
 
-            // Exit Sample  
-            if (Input.GetKey(KeyCode.Escape))
-            {
-                Application.Quit();
-				#if UNITY_EDITOR
-				UnityEditor.EditorApplication.isPlaying = false; 
-				#endif
-            }
-            // Hide and lock cursor when right mouse button pressed
-            if (Input.GetMouseButtonDown(1))
-            {
+            if (mouse != null && mouse.rightButton.wasPressedThisFrame)
                 Cursor.lockState = CursorLockMode.Locked;
+            if (mouse != null && mouse.rightButton.wasReleasedThisFrame)
+            {
+                Cursor.visible = true;
+                Cursor.lockState = CursorLockMode.None;
             }
 
-            // Unlock and show cursor when right mouse button released
+            if (mouse != null && mouse.rightButton.isPressed)
+                RotateCamera(mouse.delta.ReadValue());
+            else
+                RotateWithStylus();
+
+            translation = GetInputTranslationDirection() * Time.deltaTime;
+            if (keyboard != null && keyboard.leftShiftKey.isPressed)
+                translation *= 10f;
+            if (mouse != null)
+                boost += mouse.scroll.ReadValue().y / 600f;
+#elif ENABLE_LEGACY_INPUT_MANAGER
+            if (Input.GetKey(KeyCode.Escape))
+                ExitSample();
+
+            if (Input.GetMouseButtonDown(1))
+                Cursor.lockState = CursorLockMode.Locked;
             if (Input.GetMouseButtonUp(1))
             {
                 Cursor.visible = true;
                 Cursor.lockState = CursorLockMode.None;
             }
 
-            // Rotation
             if (Input.GetMouseButton(1))
-            {
-                var mouseMovement = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y") * (invertY ? 1 : -1));
-                
-                var mouseSensitivityFactor = mouseSensitivityCurve.Evaluate(mouseMovement.magnitude);
+                RotateCamera(new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y")));
+            else
+                RotateWithStylus();
 
-                m_TargetCameraState.yaw += mouseMovement.x * mouseSensitivityFactor;
-                m_TargetCameraState.pitch += mouseMovement.y * mouseSensitivityFactor;
-            }
-            else if (KmaxPointer.GetPointerButton(KmaxStylus.UniqueId, 1)) // Stylus rotation
-            {
-                var stylusMovement = KmaxPointer.GetPointerAxis(KmaxStylus.UniqueId);
-                stylusMovement.y *= invertY ? 1 : -1;
-
-                var mouseSensitivityFactor = mouseSensitivityCurve.Evaluate(stylusMovement.magnitude);
-
-                m_TargetCameraState.yaw += stylusMovement.x * mouseSensitivityFactor;
-                m_TargetCameraState.pitch += stylusMovement.y * mouseSensitivityFactor;
-            }
-
-            // Translation
             translation = GetInputTranslationDirection() * Time.deltaTime;
-
-            // Speed up movement when shift key held
             if (Input.GetKey(KeyCode.LeftShift))
-            {
-                translation *= 10.0f;
-            }
-
-            // Modify movement by a boost factor (defined in Inspector and modified in play mode through the mouse scroll wheel)
+                translation *= 10f;
             boost += Input.mouseScrollDelta.y * 0.2f;
-            translation *= Mathf.Pow(2.0f, boost);
-
-#elif USE_INPUT_SYSTEM 
-            // TODO: make the new input system work
 #endif
+            translation *= Mathf.Pow(2f, boost);
+            targetCameraState.Translate(translation);
 
-            m_TargetCameraState.Translate(translation);
+            float positionLerpPct = 1f - Mathf.Exp(
+                Mathf.Log(1f - 0.99f) / positionLerpTime * Time.deltaTime);
+            float rotationLerpPct = 1f - Mathf.Exp(
+                Mathf.Log(1f - 0.99f) / rotationLerpTime * Time.deltaTime);
+            interpolatingCameraState.LerpTowards(
+                targetCameraState, positionLerpPct, rotationLerpPct);
+            interpolatingCameraState.UpdateTransform(transform);
+        }
 
-            // Framerate-independent interpolation
-            // Calculate the lerp amount, such that we get 99% of the way to our target in the specified time
-            var positionLerpPct = 1f - Mathf.Exp((Mathf.Log(1f - 0.99f) / positionLerpTime) * Time.deltaTime);
-            var rotationLerpPct = 1f - Mathf.Exp((Mathf.Log(1f - 0.99f) / rotationLerpTime) * Time.deltaTime);
-            m_InterpolatingCameraState.LerpTowards(m_TargetCameraState, positionLerpPct, rotationLerpPct);
+        private void RotateCamera(Vector2 movement)
+        {
+            movement.y *= invertY ? 1 : -1;
+            float sensitivity = mouseSensitivityCurve.Evaluate(movement.magnitude);
+            targetCameraState.yaw += movement.x * sensitivity;
+            targetCameraState.pitch += movement.y * sensitivity;
+        }
 
-            m_InterpolatingCameraState.UpdateTransform(transform);
+        private void RotateWithStylus()
+        {
+            if (!KmaxPointer.GetPointerButton(KmaxStylus.UniqueId, 1))
+                return;
+            RotateCamera(KmaxPointer.GetPointerAxis(KmaxStylus.UniqueId));
+        }
+
+        private static void ExitSample()
+        {
+            Application.Quit();
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#endif
         }
     }
-
 }

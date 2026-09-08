@@ -5,6 +5,9 @@ using UnityEngine.EventSystems;
 
 namespace KmaxXR
 {
+    /// <summary>
+    /// 修正旧输入系统在左右格式立体渲染下的指针位置。
+    /// </summary>
     public class KmaxBaseInput : BaseInput
     {
         /// <summary>
@@ -15,9 +18,7 @@ namespace KmaxXR
         {
             get
             {
-                var pos = base.mousePosition;
-                FixPosition(ref pos);
-                return pos;
+                return KmaxInputPosition.Correct(base.mousePosition);
             }
         }
 
@@ -30,28 +31,8 @@ namespace KmaxXR
         public override Touch GetTouch(int index)
         {
             var touch = base.GetTouch(index);
-            // 是否半画幅左右格式
-            // 如果是半画幅左右格式则不需要做触摸转换
-            bool half_sbs = Screen.width / Screen.height < 2;
-            if (half_sbs) return touch;
-            Vector2 pos = touch.position;
-            FixPosition(ref pos);
-            touch.position = pos;
+            touch.position = KmaxInputPosition.CorrectTouch(touch.position);
             return touch;
-        }
-
-        /// <summary>
-        /// 屏幕分片数量
-        /// </summary>
-        private const int splitCount = 2;
-        /// <summary>
-        /// 针对立体显示模式修正输入的位置
-        /// </summary>
-        /// <param name="position">输入的位置</param>
-        static void FixPosition(ref Vector2 pos)
-        {
-            float fragmentWidth = Screen.width / splitCount;
-            pos.x = pos.x % fragmentWidth * splitCount;
         }
     }
 }

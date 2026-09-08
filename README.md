@@ -15,9 +15,9 @@ Support Stereo Display and stylus input on Kmax XR devices.
 
 眼部追踪，是立体显示和空间交互的基础。
 
-### KmaxInputModule
+### KmaxInputModule / KmaxInputSystemUIInputModule
 
-提供空间交互支持。
+提供空间交互支持，分别适配 Legacy Input Manager 和 Input System。
 
 ## 使用说明
 

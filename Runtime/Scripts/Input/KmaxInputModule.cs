@@ -1,210 +1,87 @@
-﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
 namespace KmaxXR
 {
-    public class KmaxInputModule : StandaloneInputModule
+    /// <summary>
+    /// 处理旧输入系统的 UI 输入与 Kmax 空间指针事件。
+    /// </summary>
+    public class KmaxInputModule : StandaloneInputModule, IKmaxPointerEventHost
     {
         [Space]
-        [SerializeField, Tooltip("fix stereo display mode")]
-        private bool mouseOverride = true;
         [SerializeField]
         private int stylusDragThreshold = 10;
 
-        /// <summary>
-        /// 是否在左右格式时改写鼠标位置
-        /// </summary>
-        public bool MouseOverride
+        private KmaxPointerEventProcessor pointerProcessor;
+
+        /// <inheritdoc/>
+        public int StylusDragThreshold
         {
-            get => mouseOverride; set
-            {
-                mouseOverride = value;
-                inputOverride = null;
-            }
+            get => stylusDragThreshold;
+            set => stylusDragThreshold = Mathf.Max(0, value);
         }
 
-        /// <summary>
-        /// 射线笔拖动阈值
-        /// </summary>
-        public int StylusDragThreshold { get => stylusDragThreshold; set => stylusDragThreshold = value; }
+        EventSystem IKmaxPointerEventHost.EventSystem => eventSystem;
 
 #if UNITY_EDITOR
+        /// <inheritdoc/>
         protected override void OnValidate()
         {
             base.OnValidate();
-            if (!mouseOverride) { inputOverride = null; }
+            stylusDragThreshold = Mathf.Max(0, stylusDragThreshold);
         }
 #endif
 
+        /// <inheritdoc/>
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            EnsurePointerProcessor();
+        }
+
+        /// <inheritdoc/>
+        protected override void OnDisable()
+        {
+            pointerProcessor?.Clear();
+            base.OnDisable();
+        }
+
+        /// <inheritdoc/>
         public override void Process()
         {
-            base.Process();
-            ProcessStylusEvent();
-        }
-
-        virtual protected bool ProcessStylusEvent()
-        {
             OverrideBaseInput();
-            foreach (var p in KmaxPointer.Pointers)
-            {
-                // 主键
-                var data = GetStylusEventData(p, PointerEventData.InputButton.Left);
-                ProcessStylusPress(data, p.StateOf(PointerEventData.InputButton.Left));
-                ProcessStylusMove(data);
-                ProcessStylusDrag(data);
-                // 处理中键和右键
-                var rdata = GetStylusEventData(p, PointerEventData.InputButton.Right, data);
-                ProcessStylusPress(rdata, p.StateOf(PointerEventData.InputButton.Right));
-                ProcessStylusDrag(rdata);
-                var mdata = GetStylusEventData(p, PointerEventData.InputButton.Middle, data);
-                ProcessStylusPress(mdata, p.StateOf(PointerEventData.InputButton.Middle));
-                ProcessStylusDrag(mdata);
-            }
-            return KmaxPointer.Enable;
+            base.Process();
+            EnsurePointerProcessor().Process(stylusDragThreshold);
         }
 
-        private PointerEventData GetStylusEventData(KmaxPointer pointer, PointerEventData.InputButton button, PointerEventData fromData = null)
+        /// <inheritdoc/>
+        public override bool IsPointerOverGameObject(int pointerId)
         {
-            PointerEventData pData;
-            int bid = (int)button;
-            bool created = GetPointerData(pointer.Id + bid, out pData, true);
-            pData.Reset();
-            if (created)
-            {
-                pData.position = pointer.ScreenPosition;
-                pData.button = button;
-            }
-
-            if (fromData != null)
-            {
-                // 从其他按钮数据拷贝
-                CopyFromTo(fromData, pData);
-            }
-            else
-            {
-                pointer.UpdateState();
-                pointer.Raycast(pData);
-            }
-            return pData;
+            return (pointerProcessor != null && pointerProcessor.IsPointerOverGameObject(pointerId)) ||
+                base.IsPointerOverGameObject(pointerId);
         }
 
-        protected void ProcessStylusPress(PointerEventData data, PointerEventData.FramePressState state)
+        void IKmaxPointerEventHost.HandlePointerExitAndEnter(
+            PointerEventData eventData, GameObject target)
         {
-            var currentObj = data.pointerCurrentRaycast.gameObject;
-
-            if (state == PointerEventData.FramePressState.Pressed)
-            {
-                data.eligibleForClick = true;
-                data.delta = Vector2.zero;
-                data.dragging = false;
-                data.useDragThreshold = true;
-                data.pressPosition = data.position;
-                data.pointerPressRaycast = data.pointerCurrentRaycast;
-
-                DeselectIfSelectionChanged(currentObj, data);
-                // Debug.Log("point down");
-                PointerEventData pointerEvent = data;
-                var newPressed = ExecuteEvents.ExecuteHierarchy(currentObj, pointerEvent, ExecuteEvents.pointerDownHandler);
-
-                // didnt find a press handler... search for a click handler
-                if (newPressed == null)
-                    newPressed = ExecuteEvents.GetEventHandler<IPointerClickHandler>(currentObj);
-
-                // Debug.Log("Pressed: " + newPressed);
-
-                float time = Time.unscaledTime;
-
-                if (newPressed == pointerEvent.lastPress)
-                {
-                    var diffTime = time - pointerEvent.clickTime;
-                    if (diffTime < 0.3f)
-                        ++pointerEvent.clickCount;
-                    else
-                        pointerEvent.clickCount = 1;
-
-                    pointerEvent.clickTime = time;
-                }
-                else
-                {
-                    pointerEvent.clickCount = 1;
-                }
-
-                pointerEvent.pointerPress = newPressed;
-                pointerEvent.rawPointerPress = currentObj;
-
-                pointerEvent.clickTime = time;
-
-                // Save the drag handler as well
-                pointerEvent.pointerDrag = ExecuteEvents.GetEventHandler<IDragHandler>(currentObj);
-
-                if (pointerEvent.pointerDrag != null)
-                    ExecuteEvents.Execute(pointerEvent.pointerDrag, pointerEvent, ExecuteEvents.initializePotentialDrag);
-            }
-            else if (state == PointerEventData.FramePressState.Released)
-            {
-                // Debug.Log("point up");
-                PointerEventData pointerEvent = data;
-                ExecuteEvents.Execute(pointerEvent.pointerPress, pointerEvent, ExecuteEvents.pointerUpHandler);
-
-                var pointerUpHandler = ExecuteEvents.GetEventHandler<IPointerClickHandler>(currentObj);
-
-                // PointerClick and Drop events
-                if (pointerEvent.pointerPress == pointerUpHandler && pointerEvent.eligibleForClick)
-                {
-                    ExecuteEvents.Execute(pointerEvent.pointerPress, pointerEvent, ExecuteEvents.pointerClickHandler);
-                }
-                else if (pointerEvent.pointerDrag != null && pointerEvent.dragging)
-                {
-                    ExecuteEvents.ExecuteHierarchy(currentObj, pointerEvent, ExecuteEvents.dropHandler);
-                }
-
-                pointerEvent.eligibleForClick = false;
-                pointerEvent.pointerPress = null;
-                pointerEvent.rawPointerPress = null;
-
-                if (pointerEvent.pointerDrag != null && pointerEvent.dragging)
-                    ExecuteEvents.Execute(pointerEvent.pointerDrag, pointerEvent, ExecuteEvents.endDragHandler);
-
-                pointerEvent.dragging = false;
-                pointerEvent.pointerDrag = null;
-
-                // redo pointer enter / exit to refresh state
-                // so that if we moused over something that ignored it before
-                // due to having pressed on something else
-                // it now gets it.
-                if (currentObj != pointerEvent.pointerEnter)
-                {
-                    HandlePointerExitAndEnter(pointerEvent, null);
-                    HandlePointerExitAndEnter(pointerEvent, currentObj);
-                }
-            }
+            HandlePointerExitAndEnter(eventData, target);
         }
 
-        protected void ProcessStylusMove(PointerEventData data)
+        private KmaxPointerEventProcessor EnsurePointerProcessor()
         {
-            HandlePointerExitAndEnter(data, data.pointerCurrentRaycast.gameObject);
+            if (pointerProcessor == null)
+                pointerProcessor = new KmaxPointerEventProcessor(this);
+            return pointerProcessor;
         }
 
-        protected void ProcessStylusDrag(PointerEventData data)
+        private void OverrideBaseInput()
         {
-            // 自定义拖拽阈值
-            int cache = eventSystem.pixelDragThreshold;
-            eventSystem.pixelDragThreshold = stylusDragThreshold;
-            ProcessDrag(data);
-            eventSystem.pixelDragThreshold = cache;
-        }
-
-        /// <summary>
-        /// 针对立体显示覆盖输入
-        /// </summary>
-        virtual protected void OverrideBaseInput()
-        {
-            if (inputOverride == null && mouseOverride)
+            if (inputOverride == null)
             {
                 var current = GetComponent<KmaxBaseInput>();
-                inputOverride = current == null ? gameObject.AddComponent<KmaxBaseInput>() : current;
+                inputOverride = current == null
+                    ? gameObject.AddComponent<KmaxBaseInput>()
+                    : current;
             }
         }
     }

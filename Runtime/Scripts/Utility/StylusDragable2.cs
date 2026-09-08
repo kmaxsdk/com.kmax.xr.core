@@ -57,10 +57,10 @@ namespace KmaxXR
             //Debug.Log($"current pointerId {eventData.pointerId}");
             if (StylusDragable.IsStylusAndPrimary(eventData))
                 StylusOnBeginDrag(eventData);
-            else if (eventData.pointerId < 0)
-                MouseOnBeginDrag(eventData);
-            else
+            else if (KmaxInputCompatibility.IsTouch(eventData))
                 TouchOnBeginDrag(eventData);
+            else
+                MouseOnBeginDrag(eventData);
 
             if (_mode != Mode.None && _currentPointerId > -10) RigidbodyFreeze();
         }
@@ -139,11 +139,11 @@ namespace KmaxXR
         #endregion
 
         #region Touch
-        private Vector2[] GetTouchPositions(BaseInputModule module)
+        private Vector2[] GetTouchPositions(PointerEventData eventData)
         {
-            Vector2[] positions = new Vector2[module.input.touchCount];
-            for (int i = 0; i < module.input.touchCount; i++)
-                positions[i] = module.input.GetTouch(i).position;
+            Vector2[] positions = new Vector2[KmaxInputCompatibility.GetTouchCount(eventData)];
+            for (int i = 0; i < positions.Length; i++)
+                positions[i] = KmaxInputCompatibility.GetTouchPosition(eventData, i);
             return positions;
         }
         private Vector2 GetTouchAve(Vector2[] vecs)
@@ -162,8 +162,7 @@ namespace KmaxXR
             _souce = Source.Touch;
             _mode = Mode.None;
 
-            if (eventData.pointerId != 0) return;
-            if (eventData.currentInputModule == null) return;
+            if (!KmaxInputCompatibility.IsPrimaryTouch(eventData)) return;
 
             RaycastResult rayRes = eventData.pointerCurrentRaycast;
             if (rayRes.module == null || rayRes.module.eventCamera == null) return;
@@ -172,7 +171,8 @@ namespace KmaxXR
             this._currentPointerId = eventData.pointerId;
             this._eventCamera = rayRes.module.eventCamera;
 
-            this._initTouchPositions = GetTouchPositions(eventData.currentInputModule);
+            this._initTouchPositions = GetTouchPositions(eventData);
+            if (this._initTouchPositions.Length == 0) return;
             this._initObjGrabDistance = (rayRes.module.eventCamera.transform.position - rayRes.worldPosition).magnitude;
             // 以多指中心点为基准
             Vector2 position = GetTouchAve(this._initTouchPositions);
@@ -187,11 +187,9 @@ namespace KmaxXR
         {
             if (_initTouchPositions == null) return;
             if (_eventCamera == null) return;
-            if (eventData.pointerId != 0) return;
-            if (eventData.currentInputModule == null) return;
-            if (eventData.currentInputModule.input.touchCount < this._initTouchPositions.Length) return;
+            if (KmaxInputCompatibility.GetTouchCount(eventData) < this._initTouchPositions.Length) return;
 
-            Vector2[] positions = GetTouchPositions(eventData.currentInputModule);
+            Vector2[] positions = GetTouchPositions(eventData);
 
             // 一个手指旋转 
             if (_initTouchPositions.Length == 1)

@@ -5,6 +5,9 @@ using UnityEngine.EventSystems;
 
 namespace KmaxXR
 {
+    /// <summary>
+    /// 提供使用触笔、触摸或鼠标拖拽三维对象的基础交互。
+    /// </summary>
     public class StylusDragable : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler
     {
         /// <summary>
@@ -31,10 +34,10 @@ namespace KmaxXR
             //Debug.Log($"current pointerId {eventData.pointerId}");
             if (IsStylusAndPrimary(eventData))
                 StylusOnBeginDrag(eventData);
-            else if (eventData.pointerId < 0)
-                MouseOnBeginDrag(eventData);
-            else
+            else if (KmaxInputCompatibility.IsTouch(eventData))
                 TouchOnBeginDrag(eventData);
+            else
+                MouseOnBeginDrag(eventData);
 
             if (m_mode != Mode.None && m_currentPointerId > -10) RigidbodyFreeze();
         }
@@ -118,10 +121,10 @@ namespace KmaxXR
             m_souce = Source.Touch;
             m_mode = Mode.None;
 
-            if (eventData.pointerId != 0) return;
+            if (!KmaxInputCompatibility.IsPrimaryTouch(eventData)) return;
             m_currentPointerId = eventData.pointerId;
 
-            if (Input.touchCount == 1)
+            if (KmaxInputCompatibility.GetTouchCount(eventData) == 1)
             {
                 m_mode = Mode.Drag;
                 RaycastResult rayRes = eventData.pointerCurrentRaycast;
@@ -140,8 +143,6 @@ namespace KmaxXR
         }
         public virtual void TouchOnDrag(PointerEventData eventData)
         {
-            if (eventData.pointerId != 0) return;
-
             if (m_mode == Mode.Drag)
             {
                 if (this.m_eventCamera == null) return;

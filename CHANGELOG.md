@@ -3,6 +3,19 @@
 所有的改动都记录在这里  
 [Chanagelog English](CHANGELOG.en.md)
 
+## [2.7.0] - 2026-09-07
+
+### Added
+
+- 新增 Unity Input System 输入支持
+- 新增 Input System 示例场景
+
+### Changed
+
+- Legacy Input Manager 与 Input System 均支持 Kmax 触笔和触摸拖拽
+- Input System 支持作为可选功能提供
+- 示例脚本兼容 Legacy、Input System 与 Both 模式
+
 ## [2.6.1] - 2026-04-02
 
 ### Fixed

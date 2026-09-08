@@ -128,7 +128,7 @@ namespace KmaxXR
 
         private void OnDrawGizmos()
         {
-            Ray ray = eventCamera.ScreenPointToRay(Input.mousePosition);
+            Ray ray = eventCamera.ScreenPointToRay(mousePosition);
             if (IsHit)
             {
                 Gizmos.color = Color.yellow;
